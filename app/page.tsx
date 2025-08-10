@@ -1,7 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import UserItem from "@/components/UserItem";
+import { PostgrestError } from "@supabase/supabase-js";
 // import ClientComponentWithSupabase from "@/components/ClientComponentWithSupabase";
 // import ServerComponentWithSupabase from "@/components/ServerComponentWithSupabase";
 
@@ -24,6 +27,27 @@ const initialState = {
 
 export default function Home() {
   const [formValues, setFormValues] = useState<User>(initialState);
+  const [users, setUsers] = useState<User[] | null>([]);
+  const [error, setError] = useState<PostgrestError | null>(null);
+
+  async function loadUsers() {
+    try {
+      const supabase = createClient();
+      const { data: users, error: usersError } = await supabase
+        .from("users")
+        .select();
+
+      if (usersError) setError(usersError);
+
+      setUsers(users);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  useEffect(() => {
+    loadUsers().catch(console.error);
+  }, []);
 
   function handleFormAction() {}
 
@@ -107,6 +131,15 @@ export default function Home() {
                 Limpiar
               </button>
             </form>
+            <div>
+              {users?.map((user) => (
+                <UserItem
+                  key={user.id}
+                  {...user}
+                  setFormValues={setFormValues}
+                />
+              ))}
+            </div>
           </main>
         </div>
       </div>
