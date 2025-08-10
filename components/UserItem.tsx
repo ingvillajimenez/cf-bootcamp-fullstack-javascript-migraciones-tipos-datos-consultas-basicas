@@ -14,7 +14,7 @@ type User = {
 
 type UserItemProps = User & {
   onRefresh: () => void;
-  setFormValues: (values: User) => void;
+  onEdit: (user: User) => void;
 };
 
 const supabase = createClient();
@@ -25,7 +25,7 @@ export default function UserItem({
   last_name: lastName,
   age,
   onRefresh,
-  setFormValues,
+  onEdit,
 }: UserItemProps) {
   const [error, setError] = useState<PostgrestError | string | null>(null);
   const [deleteLabel, setDeleteLabel] = useState("Eliminar");
@@ -52,10 +52,6 @@ export default function UserItem({
   function handleConfirmDelete() {
     setDeleteLabel("Confirmar");
     setConfirmDelete(true);
-  }
-
-  function onEdit(user: User) {
-    setFormValues(user);
   }
 
   return (

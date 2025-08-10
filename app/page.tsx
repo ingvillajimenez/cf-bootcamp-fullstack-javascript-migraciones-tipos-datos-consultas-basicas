@@ -37,7 +37,8 @@ export default function Home() {
     try {
       const { data: users, error: usersError } = await supabase
         .from("users")
-        .select();
+        .select()
+        .order("id");
 
       if (usersError) setError(usersError);
 
@@ -68,6 +69,10 @@ export default function Home() {
     const { name, value } = e.target;
 
     setFormValues((prevFormValues) => ({ ...prevFormValues, [name]: value }));
+  }
+
+  function handleEditUser(user: User) {
+    setFormValues(user);
   }
 
   return (
@@ -153,7 +158,7 @@ export default function Home() {
                   key={user.id}
                   {...user}
                   onRefresh={loadUsers}
-                  setFormValues={setFormValues}
+                  onEdit={handleEditUser}
                 />
               ))}
             </div>
