@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import UserItem from "@/components/UserItem";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import UserItem from "@/components/UserItem";
 import { PostgrestError } from "@supabase/supabase-js";
+import { createUser, updateUser } from "./actions";
 // import ClientComponentWithSupabase from "@/components/ClientComponentWithSupabase";
 // import ServerComponentWithSupabase from "@/components/ServerComponentWithSupabase";
 
@@ -25,6 +26,8 @@ const initialState = {
   age: 0,
 };
 
+const supabase = createClient();
+
 export default function Home() {
   const [formValues, setFormValues] = useState<User>(initialState);
   const [users, setUsers] = useState<User[] | null>([]);
@@ -32,7 +35,6 @@ export default function Home() {
 
   async function loadUsers() {
     try {
-      const supabase = createClient();
       const { data: users, error: usersError } = await supabase
         .from("users")
         .select();
@@ -49,7 +51,18 @@ export default function Home() {
     loadUsers().catch(console.error);
   }, []);
 
-  function handleFormAction() {}
+  async function handleFormAction(formData: FormData) {
+    if (formValues.id === -1) {
+      // Es un nuevo usuario
+      await createUser(formData);
+    } else {
+      // Es un usuario existente
+      await updateUser(formData);
+    }
+
+    setFormValues(initialState);
+    loadUsers();
+  }
 
   function handleFormChange(e: React.ChangeEvent<HTMLInputElement>) {
     const { name, value } = e.target;
@@ -131,11 +144,15 @@ export default function Home() {
                 Limpiar
               </button>
             </form>
+            {error && (
+              <p className="text-red-500 text-sm">{error?.toString()}</p>
+            )}
             <div>
               {users?.map((user) => (
                 <UserItem
                   key={user.id}
                   {...user}
+                  onRefresh={loadUsers}
                   setFormValues={setFormValues}
                 />
               ))}
